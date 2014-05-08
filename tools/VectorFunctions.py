@@ -1,6 +1,7 @@
 from sympy import *
 
 u = symbols('u', cls=Function)
+u_x, u_y, u_z = symbols('u_x u_y u_z', cls=Function)
 x, y, z= symbols('x y z')
 
 class dvg(Function):
