@@ -63,6 +63,50 @@ def generateCudaKernel( functionName, additionalParams ):
 
 	return code
 
+def getDeriv(field, x):
+	return str(0)
+
+def functionToString( function, inFields ):
+	r = str(function)
+	for field in inFields:
+		r = r.replace("Derivative("+str(field)+"(x, y), x, x)", "d"+str(field)+"_dxdx");
+		r = r.replace("Derivative("+str(field)+"(x, y), x, y)", "d"+str(field)+"_dxdy");
+		r = r.replace("Derivative("+str(field)+"(x, y), y, x)", "d"+str(field)+"_dydx");
+		r = r.replace("Derivative("+str(field)+"(x, y), y, y)", "d"+str(field)+"_dydy");
+		r = r.replace("Derivative("+str(field)+"(x, y), x)", "d"+str(field)+"_dx");
+		r = r.replace("Derivative("+str(field)+"(x, y), y)", "d"+str(field)+"_dy");
+	return r
+
+def generateCudaKernelFromFunction( functionName, function, inFields, additionalParams ):
+	code = "template<typename T>\n"
+	code += "__global__ void kernel_"+functionName+"(\n"
+	code += "                                 Field2D<T> output,\n"
+	code += "                                 " + ",".join( "Field2D<T> "+str(p) for p in inFields )
+	code += "                                 Field2D<T> B,\n"
+	code += "                                 " + ",".join( str(p) for p in additionalParams )
+	code += "                           )\n"
+	code += "{\n"
+	code += "  int x = blockIdx.x * gridDim.x + threadIdx.x;\n"
+	code += "  int y = blockIdx.y * gridDim.y + threadIdx.y;\n"
+	code += "  if( x >= 0 && x < A.getWidth() && y >= 0 && y < A.getHeight() ) \n"
+	code += "  {\n"
+
+	for field in inFields:
+		code += "    T d"+str(field)+"_dx = "+getDeriv(field, 0)+";\n"
+		code += "    T d"+str(field)+"_dy = "+getDeriv(field, 0)+";\n"
+
+	#code += "    printf(\"%f\\n\", r);\n"
+	code += "    T r = "+functionToString(function, inFields)+";\n"
+	#code += "    T r = "+functionToString(function.simplify(), inFields)+";\n"
+	code += "    output.at(x,y) = r;\n"
+	code += "  }\n"
+	code += "  \n"
+
+
+	code += "}\n"
+
+	return code
+
 def generateCudaKernelApplication( functionName, additionalParams ):
 	code = "template<typename T>\n"
 	code += "__host__ void applyConvolution_"+functionName+"(\n"
