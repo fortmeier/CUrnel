@@ -24,7 +24,7 @@ int main(void)
     cout << "A1 (old):" << endl;
     showField( A1 );
 
-	float alpha = 0.1;
+	float alpha = -0.1;
 
 	for( int i = 0; i < 200; i++ )
 	{

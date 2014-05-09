@@ -18,6 +18,7 @@ d_dydx = d_dxdy.transpose()
 ll = locals()
 
 def CreateKernel(a, symU=U):
+	a=a.replace(Subs, lambda A,B,C: A.xreplace(dict(zip(B,C))))
 	r = str(a)
 	#a = a.subs(Derivative(u(x,y),x,x),d_dxdx)
 	#a = a.subs(Derivative(u(x,y),x,y),d_dxdy)

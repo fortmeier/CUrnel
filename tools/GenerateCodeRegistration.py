@@ -21,10 +21,9 @@ print D.diff(u(x,y).diff(x))
 print "J: "+str(J)
 # Euler-Lagrange Equation gives the needed linear differential operator:
 # 0 = du_dt - ...
-dJ_du = (J.diff(u(x,y).diff(x))).diff(x) + (J.diff(u(x,y).diff(y))).diff(y)
+dJ = J.diff(u(x,y)) - (J.diff(u(x,y).diff(x))).diff(x) + (J.diff(u(x,y).diff(y))).diff(y)
 
-
-print dJ_du
-K_diff = CreateKernel(dJ_du) 
+print "dJ: " + str(dJ)
+K_diff = CreateKernel(dJ) 
 pprint (K_diff)
 
