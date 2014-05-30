@@ -25,6 +25,8 @@ ADD_CUSTOM_TARGET(
 
 SET( source
   src/main.cu
+  src/deformationfield.cu
+  src/image.cu
 )
 
 INCLUDE_DIRECTORIES(
@@ -32,5 +34,9 @@ INCLUDE_DIRECTORIES(
   include/
 )
 
-CUDA_ADD_EXECUTABLE( CUrnelTest ${source} )
+list(APPEND CUDA_NVCC_FLAGS -arch=sm_30)
+
+CUDA_ADD_EXECUTABLE( CUrnel ${source} )
+ADD_DEPENDENCIES( CUrnel generatedCode ) 
+
 

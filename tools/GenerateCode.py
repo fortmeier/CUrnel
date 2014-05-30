@@ -26,6 +26,7 @@ pprint (K_diff)
 #generateKernelAndSource( K_diff, "diffusionKernel", ["float alpha1"])
 
 K_diff_source = generateCudaKernelFromFunction( "diffusion", u(x,y)+alpha1*dJ, [u], [alpha1] )
+generateKernelAndSource( K_diff, "diffusionKernel", ['float alpha1'] )
 print K_diff_source
 
 

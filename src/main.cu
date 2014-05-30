@@ -4,9 +4,14 @@
 #include <iostream>
 
 #include "image.cuh"
+#include "image2.cuh"
+#include "deformationfield.cuh"
+
 #include "diffusionKernel.cuh"
+#include "ng_diffusionKernel.cuh"
 
 using namespace std;
+using namespace CUrnel;
 
 void showField( Field2D<float>& A )
 {
@@ -14,8 +19,9 @@ void showField( Field2D<float>& A )
 	return;
 }
 
-int main(void)
+int methodA(void)
 {
+
 	Field2D<float> A1 = Field2D<float>(6, 6);
 	Field2D<float> A2 = Field2D<float>(6, 6);
 
@@ -38,3 +44,61 @@ int main(void)
 
     return 0;
 }
+
+int methodB(void)
+{
+  int2 size = make_int2(6,6);
+  Image<float, R2> r;
+  Image<float, R2> t;
+
+  DeformationField<float2, R2> phi1(size);
+  DeformationField<float2, R2> phi2(size);
+
+  cout << "phi1:" << phi1 << endl;
+  cout << "phi2:" << phi2 << endl;
+
+  applyDiffusion( phi1, phi2 );
+
+  cout << "phi1:" << phi1 << endl;
+  cout << "phi2:" << phi2 << endl;
+
+  return 0;
+}
+
+int main(void)
+{
+  methodA();
+  methodB();
+  return 0;
+}
+
+
+/*
+int main()
+{
+
+  imiCudaImage<float4, R3> image0;
+  imiCudaDeformableImage<imiLocalDeformationField, float4, R3> image1a;
+  imiCudaDeformableImage<imiDeformationField<float4, R3>, float4, R3> image1b;
+  imiCuda4DMotionDeformable<imiLocalDeformationField, float4> image2a;
+  imiCuda4DMotionDeformable<imiPartialDeformationField, float4> image2b;
+
+  std::cout<<"testing"<<std::endl;
+  render( image0 );
+  render( image1a );
+  render( image1b );
+  render( image2a );
+  render( image2b );
+
+  imiLocalDeformationField& dfield = image1a.getDeformationField();
+  //applyDiffusion( dfield );
+
+  //imiCudaImage<float, R2> r;
+  //imiCudaImage<float, R2> t;
+  imiDeformationField<float, R2> phi;
+  imiDeformationField<float, R3> phi3D;
+
+  applyDiffusion( phi );
+  applyDiffusion( phi3D );
+
+}*/
