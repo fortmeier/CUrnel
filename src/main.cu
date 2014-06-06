@@ -57,12 +57,12 @@ int methodB(void)
   cout << "phi1:" << phi1 << endl;
   cout << "phi2:" << phi2 << endl;
 
-  apply_diffusion( phi1, phi2 );
+  apply_diffusion( phi1, phi2, -0.1 );
 
   cout << "phi1:" << phi1 << endl;
   cout << "phi2:" << phi2 << endl;
 
-  apply_diffusion( phi2, phi1 );
+  apply_diffusion( phi2, phi1, -0.1 );
 
   cout << "phi2:" << phi2 << endl;
   cout << "phi1:" << phi1 << endl;

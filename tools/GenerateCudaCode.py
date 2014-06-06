@@ -145,18 +145,24 @@ def generateCudaFunctor( K, functionName, additionalParams ):
 	code = ''
 	code += "template<typename T> \n"
 	code += "struct "+functionName+"Functor {\n"
-	code += "T __device__ operator() (typename NeightborType<T,R2>::type & m"
-
+	#code += "  struct params {\n"
 	for p in additionalParams:
-		code += ",\n                             const "+p+""
+		code += "  "+p+";\n"
+	#code +=	",\n".join( "    "+p for p in additionalParams )
+	#code += "\n  };\n"
+	if len(additionalParams) > 0:
+		code += "__device__  "+functionName+"Functor( "+",".join(p+"_" for p in additionalParams)+") : \n"
+		code += ",\n".join( "    "+p.split()[1]+"("+p.split()[1]+"_ )" for p in additionalParams)
+		code += "{}\n\n"
 
-	code += "                           )\n"
+	code += "T __device__ operator() ( typename NeightborType<T,R2>::type & m )\n" #, params p ) \n"
+
 	code += "{\n"
 	code += "  T r = T();\n"
 
 	for i in range(3):
 		for j in range(3):
-			code += "  r += " + str(K[i,j]) + " * m.m"+ str(i+1)+str(j+1) + ";\n"
+			code += "  r += (" + str(K[i,j]) + ") * m.m"+ str(i+1)+str(j+1) + ";\n"
 
 	code += "  return r;\n"
 	code += "}\n"
@@ -170,17 +176,18 @@ def generateFunctionApplication( functionName, additionalParams ):
 	code = ''
 	code += "template<typename AlterableFieldType>\n"
 	code += "__global__ void "+functionName+"Kernel( AlterableFieldType fieldIn, \n"
-	code += "typename AlterableFieldType::fieldtype* inData, typename AlterableFieldType::fieldtype* outData )\n"
-	code += "{\n"
+	code += "typename AlterableFieldType::fieldtype* inData, typename AlterableFieldType::fieldtype* outData"
+	code +=	",\n".join( ", "+p for p in additionalParams ) + ")"
+	code += "\n{\n"
 	code += "  typedef typename AlterableFieldType::fieldtype T;	\n"
-	code += "  fieldIn.apply( diffusionFunctor<T>(), inData, outData );\n"
+	code += "  fieldIn.apply( "+functionName+"Functor<T>("+",".join(p.split()[1] for p in additionalParams)+"), inData, outData );\n"
 	code += "}\n"
 	code += "\n"
 	code += "template<typename AlterableFieldType>\n"
 	code += "__host__ void apply_"+functionName+"(\n"
-	code += "                                 AlterableFieldType& fieldIn,\n"
-	code += "                                 AlterableFieldType& fieldOut\n"
-	code += "                                 " + "".join( ","+p for p in additionalParams ) + " )\n"
+	code += "    AlterableFieldType& fieldIn,\n"
+	code += "    AlterableFieldType& fieldOut"
+	code += "".join( ",\n    "+p for p in additionalParams ) + "\n)\n"
 	code += "{\n"
 	code += "  typedef typename AlterableFieldType::fieldtype T;\n"
 	code += "  \n"
@@ -192,7 +199,8 @@ def generateFunctionApplication( functionName, additionalParams ):
 	code += "  \n"
 	code += "  cout << fieldInData << endl;\n"
 	code += "  cout << fieldOutData << endl;\n"
-	code += "  "+functionName+"Kernel<AlterableFieldType><<<blocks, threads>>>( fieldIn, fieldInData, fieldOutData );\n"
+	code += "  "+functionName+"Kernel<AlterableFieldType><<<blocks, threads>>>( \n"
+	code += "      fieldIn, fieldInData, fieldOutData "+",".join( ","+p.split()[1] for p in additionalParams)+" );\n"
 	code += "}\n"
 
 	return code
