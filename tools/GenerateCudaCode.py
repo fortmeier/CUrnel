@@ -126,6 +126,8 @@ def generateSourceFile( functionName, code ):
 	f = open('./gen_src/'+functionName+'.cuh', 'w')
 	f.write("#pragma once\n\n")
 	f.write("#include <stdio.h>\n\n")
+	f.write("#include <field.cuh>\n\n")
+	f.write("using namespace CUrnel;\n\n")
 	f.write(code)
 
 	f.close()
@@ -135,5 +137,71 @@ def generateKernelAndSource( K, functionName, additionalParams=[] ):
 	code = generateCudaKernelCode3x3( K, functionName, additionalParams )
 	code += generateCudaKernel( functionName, additionalParams )
 	code += generateCudaKernelApplication( functionName, additionalParams )
+	generateSourceFile( functionName, code )
+	return code
+
+
+def generateCudaFunctor( K, functionName, additionalParams ):
+	code = ''
+	code += "template<typename T> \n"
+	code += "struct "+functionName+"Functor {\n"
+	code += "T __device__ operator() (typename NeightborType<T,R2>::type & m"
+
+	for p in additionalParams:
+		code += ",\n                             const "+p+""
+
+	code += "                           )\n"
+	code += "{\n"
+	code += "  T r = T();\n"
+
+	for i in range(3):
+		for j in range(3):
+			code += "  r += " + str(K[i,j]) + " * m.m"+ str(i+1)+str(j+1) + ";\n"
+
+	code += "  return r;\n"
+	code += "}\n"
+
+	code += "};\n"
+
+	return code
+
+
+def generateFunctionApplication( functionName, additionalParams ):
+	code = ''
+	code += "template<typename AlterableFieldType>\n"
+	code += "__global__ void "+functionName+"Kernel( AlterableFieldType fieldIn, \n"
+	code += "typename AlterableFieldType::fieldtype* inData, typename AlterableFieldType::fieldtype* outData )\n"
+	code += "{\n"
+	code += "  typedef typename AlterableFieldType::fieldtype T;	\n"
+	code += "  fieldIn.apply( diffusionFunctor<T>(), inData, outData );\n"
+	code += "}\n"
+	code += "\n"
+	code += "template<typename AlterableFieldType>\n"
+	code += "__host__ void apply_"+functionName+"(\n"
+	code += "                                 AlterableFieldType& fieldIn,\n"
+	code += "                                 AlterableFieldType& fieldOut\n"
+	code += "                                 " + "".join( ","+p for p in additionalParams ) + " )\n"
+	code += "{\n"
+	code += "  typedef typename AlterableFieldType::fieldtype T;\n"
+	code += "  \n"
+	code += "  T* fieldInData = fieldIn.getDeviceDataPointer();\n"
+	code += "  T* fieldOutData = fieldOut.getDeviceDataPointer();\n"
+	code += "  \n"
+	code += "  dim3 blocks = fieldIn.getBlocks();\n"
+	code += "  dim3 threads = fieldIn.getThreads();\n"
+	code += "  \n"
+	code += "  cout << fieldInData << endl;\n"
+	code += "  cout << fieldOutData << endl;\n"
+	code += "  "+functionName+"Kernel<AlterableFieldType><<<blocks, threads>>>( fieldIn, fieldInData, fieldOutData );\n"
+	code += "}\n"
+
+	return code
+
+def generateCodeAndSource( K, functionName, additionalParams=[] ):
+	code = ''
+	#code = generateCudaKernelCode3x3( K, functionName, additionalParams )
+	#code += generateCudaKernel( functionName, additionalParams )
+	code += generateCudaFunctor(K, functionName, additionalParams )
+	code += generateFunctionApplication( functionName, additionalParams )
 	generateSourceFile( functionName, code )
 	return code

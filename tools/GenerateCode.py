@@ -19,14 +19,16 @@ J = 0.5 * (u(x,y).diff(x)**2 + u(x,y).diff(y)**2)
 # Euler-Lagrange Equation gives the needed linear differential operator:
 # 0 = du_dt - ...
 dJ = J.diff(u(x,y)) - ((J.diff(u(x,y).diff(x))).diff(x) + (J.diff(u(x,y).diff(y))).diff(y))
+I_diff = dJ * -0.1 + u(x,y)
 
 print "Diffusion Kernel: "
-K_diff = CreateKernel(dJ, 'u') * alpha1
+K_diff = CreateKernel(I_diff, 'u') #alpha1
 pprint (K_diff)
 #generateKernelAndSource( K_diff, "diffusionKernel", ["float alpha1"])
 
 K_diff_source = generateCudaKernelFromFunction( "diffusion", u(x,y)+alpha1*dJ, [u], [alpha1] )
 generateKernelAndSource( K_diff, "diffusionKernel", ['float alpha1'] )
+generateCodeAndSource( K_diff, "diffusion" )
 print K_diff_source
 
 

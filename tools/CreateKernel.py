@@ -8,6 +8,8 @@ from sympy.parsing.sympy_parser import *
 
 Z = Matrix([[0,0,0],[0, 0, 0],[0,0,0]])
 
+i = Matrix([[0,0,0],[0, 1, 0],[0,0,0]])
+
 d_dx = Matrix([[0,0,0],[-0.5, 0, 0.5],[0,0,0]])
 d_dy = d_dx.transpose()
 
@@ -48,6 +50,7 @@ def CreateKernel(a, u, symR = []):
 	r = r.replace("Derivative("+str(u)+"(x, y), y, y)", "d_dydy");
 	r = r.replace("Derivative("+str(u)+"(x, y), x)", "d_dx");
 	r = r.replace("Derivative("+str(u)+"(x, y), y)", "d_dy");
+	r = r.replace(str(u)+"(x, y)", "i");
 
 	for R in symR:
 		r = r.replace("Derivative("+str(R)+"(x, y), x, x)", "Z");

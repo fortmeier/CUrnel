@@ -8,7 +8,7 @@
 #include "deformationfield.cuh"
 
 #include "diffusionKernel.cuh"
-#include "ng_diffusionKernel.cuh"
+#include "diffusion.cuh"
 
 using namespace std;
 using namespace CUrnel;
@@ -57,10 +57,15 @@ int methodB(void)
   cout << "phi1:" << phi1 << endl;
   cout << "phi2:" << phi2 << endl;
 
-  applyDiffusion( phi1, phi2 );
+  apply_diffusion( phi1, phi2 );
 
   cout << "phi1:" << phi1 << endl;
   cout << "phi2:" << phi2 << endl;
+
+  apply_diffusion( phi2, phi1 );
+
+  cout << "phi2:" << phi2 << endl;
+  cout << "phi1:" << phi1 << endl;
 
   return 0;
 }
